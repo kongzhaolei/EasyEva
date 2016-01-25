@@ -74,7 +74,7 @@ public class EasyDB {
 			}
 	}
 
-	// 获取整个查询结果
+	// 获取某一列的查询结果
 	public String[] Query(String sql,String column) {
 		List<String> list = new ArrayList<String>();
         String[] farms = null;
@@ -91,6 +91,16 @@ public class EasyDB {
 			e.printStackTrace();
 		}
 		return farms;
+	}
+
+	 // 单纯执行sql，例如insert
+	public void excutesql(String sql) {
+		try{
+			ps = conn.createStatement();
+			ps.executeQuery(sql);
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

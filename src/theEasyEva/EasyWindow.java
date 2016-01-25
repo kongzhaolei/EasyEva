@@ -233,17 +233,18 @@ public class EasyWindow {
 		Button B_deletetable = new Button(G_target, SWT.NONE);
 		B_deletetable.setBounds(297, 243, 80, 27);
 		// B_deletetable.setAlignment(SWT.LEFT);
-		B_deletetable.setText("清除数据");
-		// 清除数据
+		B_deletetable.setText("删除全部");
+		// 删除全部
 		B_deletetable.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-
+				L_targettable.removeAll();
 			}
 		});
 		// 选择全部
 		B_addtable.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-                
+				L_targettable.removeAll();
+				L_targettable.setItems(L_sourcetable.getItems());
 			}
 		});
 		// 开始同步数据库
@@ -251,6 +252,21 @@ public class EasyWindow {
 			public void widgetSelected(SelectionEvent event) {
 				// 查询当前电场
 				String farm = C_selectfarm.getText();
+				//遍历L_targettable的每个表并执行同步
+				for(int index= 0; index < L_targettable.getItemCount(); index++){
+				String table = L_targettable.getItem(index);
+				
+				//对config模式中有wfid列的表进行数据行插入
+				String baksqlbasefarm = "insert opendatasource('SQLOLEDB','Data Source= "+T_targeturl.getText()+";"
+						+ "User ID="+T_targetuser.getText()+";Password="+T_targetpassword.getText()+"')"
+						+ "."+T_targetinstance.getText()+".config."+table+" "
+						+ "select * from config."+table+" where wfid = (select wfid from config.wfinfo where wfname = '"+farm+"')";
+				sourcedb.excutesql(baksqlbasefarm);
+				}
+				MessageBox msg = new MessageBox(shell, SWT.ICON_INFORMATION);
+				msg.setText("开始同步");
+				msg.setMessage("数据库同步完成！");
+				msg.open();
 			}
 		});
 		
