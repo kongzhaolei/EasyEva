@@ -159,10 +159,8 @@ public class EasyWindow {
 						String[] str = sourcedb.Query(farmquery,"wfname");
 						// 下拉框添加电场列表
 						C_selectfarm.setItems(str);
-						B_importtable.setEnabled(true);
 						B_addtable.setEnabled(true);
 						B_deletetable.setEnabled(true);
-						
 						msg.setMessage("源库连接成功，well done！");
 						msg.open();
 					} else {
@@ -207,6 +205,7 @@ public class EasyWindow {
 					if (target_conn != null && !target_conn.isClosed()) {
 						msg.setMessage("目标库连接成功，well done！");
 						msg.open();
+						B_importtable.setEnabled(true);
 					} else {
 						msg.setMessage("目标库连接失败，try again！");
 						msg.open();
@@ -277,9 +276,9 @@ public class EasyWindow {
 			public void widgetSelected(SelectionEvent event) {
 				// 查询当前电场
 				String farm = C_selectfarm.getText();
-				//对L_targettable的元素进行排序，满足数据库对表插入顺序的约束
-				
-				
+				MessageBox msg = new MessageBox(shell, SWT.ICON_INFORMATION);
+				msg.setText("开始同步");
+				try{	
 				//遍历L_targettable的每个表并执行同步
 				for(int index= 0; index < L_targettable.getItemCount(); index++){
 				String table = L_targettable.getItem(index);
@@ -292,18 +291,21 @@ public class EasyWindow {
 				String baksqlonelse = "insert opendatasource('SQLOLEDB','Data Source= "+T_targeturl.getText()+";"
 						+ "User ID="+T_targetuser.getText()+";Password="+T_targetpassword.getText()+"')"
 						+ "."+T_targetinstance.getText()+".config."+table+" "
-						+ "select * from config."+table+" where parentid = (select wfid from config.wfinfo where wfname = '"+farm+"')";
+						+ "select * from config."+table+" where parentid = (select cast(wfid as varchar(50)) from config.wfinfo where wfname = '"+farm+"')";
 				if(table.equals("groupinfo")){
 					sourcedb.excutesql(baksqlonelse);
-				}
-					else{
+				    }
+				else{
 				    sourcedb.excutesql(baksqlonfarm);
+				    }
 				}
+				    msg.setMessage("数据库同步完成！");
+				    msg.open();
+				}catch(Exception e){
+					e.printStackTrace();
+					msg.setMessage("数据库同步失败！");
+					msg.open();
 				}
-				MessageBox msg = new MessageBox(shell, SWT.ICON_INFORMATION);
-				msg.setText("开始同步");
-				msg.setMessage("数据库同步完成！");
-				msg.open();
 			}
 		});
 		
