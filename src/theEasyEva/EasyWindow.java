@@ -1,6 +1,7 @@
 package theEasyEva;
 
 import java.sql.Connection;
+import java.util.Arrays;
 
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -36,6 +37,8 @@ public class EasyWindow {
 	
 	static List L_sourcetable;
 	static List L_targettable;
+	static String defaulttables[] = {"wfinfo","wfsystemconfig","groupinfo","lineinfo","plcinfo",
+		"portinfo","serviceinfo","proxypcinfo","wtinfo","linedevice","rolerights","monitorrights"};  //默认的12张配置表
 	
 	static EasyDB sourcedb;
 
@@ -228,7 +231,7 @@ public class EasyWindow {
 
 		Button B_addtable = new Button(G_target, SWT.NONE);
 		B_addtable.setBounds(297, 172, 80, 27);
-		B_addtable.setText("选择全部");
+		B_addtable.setText("智能选择");
 
 		Button B_deletetable = new Button(G_target, SWT.NONE);
 		B_deletetable.setBounds(297, 243, 80, 27);
@@ -240,28 +243,52 @@ public class EasyWindow {
 				L_targettable.removeAll();
 			}
 		});
-		// 选择全部
+		// 智能选择，遍历选择必须的配置表
 		B_addtable.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				L_targettable.removeAll();
-				L_targettable.setItems(L_sourcetable.getItems());
+				for(int index=0; index < defaulttables.length; index++){
+					if(Arrays.asList(L_sourcetable.getItems()).contains(defaulttables[index])){
+						L_targettable.add(defaulttables[index]);
+						L_sourcetable.remove(defaulttables[index]);
+					}else{
+						MessageBox msg = new MessageBox(shell, SWT.ICON_INFORMATION);
+						msg.setText("智能选择");
+						msg.setMessage("配置表: " + defaulttables[index] + "不存在");
+						msg.open();
+						continue;
+					}
+				}
 			}
 		});
+		
 		// 开始同步数据库
 		B_importtable.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				// 查询当前电场
 				String farm = C_selectfarm.getText();
+				//对L_targettable的元素进行排序，满足数据库对表插入顺序的约束
+				
+				
 				//遍历L_targettable的每个表并执行同步
 				for(int index= 0; index < L_targettable.getItemCount(); index++){
 				String table = L_targettable.getItem(index);
-				
 				//对config模式中有wfid列的表进行数据行插入
-				String baksqlbasefarm = "insert opendatasource('SQLOLEDB','Data Source= "+T_targeturl.getText()+";"
+				String baksqlonfarm = "insert opendatasource('SQLOLEDB','Data Source= "+T_targeturl.getText()+";"
 						+ "User ID="+T_targetuser.getText()+";Password="+T_targetpassword.getText()+"')"
 						+ "."+T_targetinstance.getText()+".config."+table+" "
 						+ "select * from config."+table+" where wfid = (select wfid from config.wfinfo where wfname = '"+farm+"')";
-				sourcedb.excutesql(baksqlbasefarm);
+				
+				String baksqlonelse = "insert opendatasource('SQLOLEDB','Data Source= "+T_targeturl.getText()+";"
+						+ "User ID="+T_targetuser.getText()+";Password="+T_targetpassword.getText()+"')"
+						+ "."+T_targetinstance.getText()+".config."+table+" "
+						+ "select * from config."+table+" where parentid = (select wfid from config.wfinfo where wfname = '"+farm+"')";
+				if(table.equals("groupinfo")){
+					sourcedb.excutesql(baksqlonelse);
+				}
+					else{
+				    sourcedb.excutesql(baksqlonfarm);
+				}
 				}
 				MessageBox msg = new MessageBox(shell, SWT.ICON_INFORMATION);
 				msg.setText("开始同步");
