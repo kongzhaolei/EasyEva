@@ -113,6 +113,36 @@ public class EasyWindow {
 		B_sourcetestconn.setBounds(640, 65, 64, 27);
 		B_sourcetestconn.setText("Test");
 		
+		Group G_target = new Group(shell, SWT.NONE);
+		G_target.setBounds(318, 148, 409, 306);
+		G_target.setText("目标库");
+
+		Label lblNewLabel_1 = new Label(G_target, SWT.NONE);
+		lblNewLabel_1.setForeground(SWTResourceManager
+				.getColor(SWT.COLOR_DARK_CYAN));
+		lblNewLabel_1.setBounds(10, 27, 148, 17);
+		lblNewLabel_1.setText("以下配置表将导入数据：");
+
+		L_targettable = new List(G_target, SWT.BORDER | SWT.WRAP
+				| SWT.V_SCROLL);
+		L_targettable.setBounds(10, 57, 234, 239);
+
+		final Button B_importtable = new Button(G_target, SWT.NONE);
+		B_importtable.setBounds(297, 105, 80, 27);
+		B_importtable.setText("开始同步");
+		B_importtable.setEnabled(false);
+
+		final Button B_addtable = new Button(G_target, SWT.NONE);
+		B_addtable.setBounds(297, 172, 80, 27);
+		B_addtable.setText("智能选择");
+		B_addtable.setEnabled(false);
+
+		final Button B_deletetable = new Button(G_target, SWT.NONE);
+		B_deletetable.setBounds(297, 243, 80, 27);
+		// B_deletetable.setAlignment(SWT.LEFT);
+		B_deletetable.setText("删除全部");
+		B_deletetable.setEnabled(false);
+		
 		sourcedb = new EasyDB(T_sourceurl.getText(),
 				T_sourceinstance.getText(), T_sourceuser.getText(),
 				T_sourcepassword.getText());
@@ -129,6 +159,10 @@ public class EasyWindow {
 						String[] str = sourcedb.Query(farmquery,"wfname");
 						// 下拉框添加电场列表
 						C_selectfarm.setItems(str);
+						B_importtable.setEnabled(true);
+						B_addtable.setEnabled(true);
+						B_deletetable.setEnabled(true);
+						
 						msg.setMessage("源库连接成功，well done！");
 						msg.open();
 					} else {
@@ -211,39 +245,14 @@ public class EasyWindow {
 			}
 		});
 
-		Group G_target = new Group(shell, SWT.NONE);
-		G_target.setBounds(318, 148, 409, 306);
-		G_target.setText("目标库");
-
-		Label lblNewLabel_1 = new Label(G_target, SWT.NONE);
-		lblNewLabel_1.setForeground(SWTResourceManager
-				.getColor(SWT.COLOR_DARK_CYAN));
-		lblNewLabel_1.setBounds(10, 27, 148, 17);
-		lblNewLabel_1.setText("以下配置表将导入数据：");
-
-		L_targettable = new List(G_target, SWT.BORDER | SWT.WRAP
-				| SWT.V_SCROLL);
-		L_targettable.setBounds(10, 57, 234, 239);
-
-		Button B_importtable = new Button(G_target, SWT.NONE);
-		B_importtable.setBounds(297, 105, 80, 27);
-		B_importtable.setText("开始同步");
-
-		Button B_addtable = new Button(G_target, SWT.NONE);
-		B_addtable.setBounds(297, 172, 80, 27);
-		B_addtable.setText("智能选择");
-
-		Button B_deletetable = new Button(G_target, SWT.NONE);
-		B_deletetable.setBounds(297, 243, 80, 27);
-		// B_deletetable.setAlignment(SWT.LEFT);
-		B_deletetable.setText("删除全部");
+		
 		// 删除全部
 		B_deletetable.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				L_targettable.removeAll();
 			}
 		});
-		// 智能选择，遍历选择必须的配置表
+		// 智能选择
 		B_addtable.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				L_targettable.removeAll();
@@ -259,6 +268,7 @@ public class EasyWindow {
 						continue;
 					}
 				}
+				B_addtable.setEnabled(false);
 			}
 		});
 		
