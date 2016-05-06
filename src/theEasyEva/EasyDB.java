@@ -93,7 +93,7 @@ public class EasyDB {
 		return farms;
 	}
 
-	 // 单纯执行sql，例如insert
+	 // 单纯执行sql，无返回结果，例如insert
 	public void excutesql(String sql) {
 		try{
 			ps = conn.createStatement();

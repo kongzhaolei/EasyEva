@@ -38,7 +38,7 @@ public class EasyWindow {
 	static List L_sourcetable;
 	static List L_targettable;
 	static String defaulttables[] = {"wfinfo","wfsystemconfig","groupinfo","lineinfo","plcinfo",
-		"portinfo","serviceinfo","proxypcinfo","wtinfo","linedevice","rolerights","monitorrights"};  //默认的12张配置表
+		"portinfo","serviceinfo","proxypcinfo","guarpow","wttypeinfo","wtinfo","linedevice"};  //默认的12张配置表
 	
 	static EasyDB sourcedb;
 
@@ -283,20 +283,42 @@ public class EasyWindow {
 				for(int index= 0; index < L_targettable.getItemCount(); index++){
 				String table = L_targettable.getItem(index);
 				//对config模式中有wfid列的表进行数据行插入
-				String baksqlonfarm = "insert opendatasource('SQLOLEDB','Data Source= "+T_targeturl.getText()+";"
+				String baksql_wfid = "insert opendatasource('SQLOLEDB','Data Source= "+T_targeturl.getText()+";"
 						+ "User ID="+T_targetuser.getText()+";Password="+T_targetpassword.getText()+"')"
 						+ "."+T_targetinstance.getText()+".config."+table+" "
 						+ "select * from config."+table+" where wfid = (select wfid from config.wfinfo where wfname = '"+farm+"')";
 				
-				String baksqlonelse = "insert opendatasource('SQLOLEDB','Data Source= "+T_targeturl.getText()+";"
+				//无wfid列，针对设备组管理groupinfo表的定制sql
+				String baksql_parentid = "insert opendatasource('SQLOLEDB','Data Source= "+T_targeturl.getText()+";"
 						+ "User ID="+T_targetuser.getText()+";Password="+T_targetpassword.getText()+"')"
 						+ "."+T_targetinstance.getText()+".config."+table+" "
 						+ "select * from config."+table+" where parentid = (select cast(wfid as varchar(50)) from config.wfinfo where wfname = '"+farm+"')";
+				
+				//无wfid列，针对担保曲线guarpow表的定制sql
+				String baksql_id = "insert opendatasource('SQLOLEDB','Data Source= "+T_targeturl.getText()+";"
+						+ "User ID="+T_targetuser.getText()+";Password="+T_targetpassword.getText()+"')"
+						+ "."+T_targetinstance.getText()+".config."+table+" "
+						+ "select * from config."+table+" where left(cast(id AS varchar(10)),6) = (select cast(wfid as varchar(50)) from config.wfinfo where wfname = '"+farm+"')";
+				
+				//无wfid列，针对设备类型表的定制sql
+				String baksql_protocolid = "insert opendatasource('SQLOLEDB','Data Source= "+T_targeturl.getText()+";"
+						+ "User ID="+T_targetuser.getText()+";Password="+T_targetpassword.getText()+"')"
+						+ "."+T_targetinstance.getText()+".config."+table+" "
+						+ "select * from config."+table+" wts where wts.protocolid not in (select wtt.protocolid from "+T_targetinstance.getText()+".config."+table+" wtt)";
+				
 				if(table.equals("groupinfo")){
-					sourcedb.excutesql(baksqlonelse);
+					sourcedb.excutesql(baksql_parentid);
 				    }
 				else{
-				    sourcedb.excutesql(baksqlonfarm);
+					if(table.equals("guarpow")){
+					    sourcedb.excutesql(baksql_id);
+					}
+					if(table.equals("wttypeinfo")){
+						sourcedb.excutesql(baksql_protocolid);
+					}
+					else{
+				    sourcedb.excutesql(baksql_wfid);
+					    }
 				    }
 				}
 				    msg.setMessage("数据库同步完成！");
